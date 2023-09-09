@@ -1,0 +1,34 @@
+syntax = "proto3";
+package vitalsignpublish;
+
+option go_package = "./protos";
+
+service VitalSignPublish{
+    rpc checkRPNs(VoidRequest) returns(RPNs);
+    rpc checkPatients(VoidRequest) returns(Patients);
+    rpc registerRPN(RPN) returns(Msg);
+    rpc unregisterRPN(RPN) returns(Msg);
+    rpc registerPatient(Patient) returns(Msg);
+    rpc unregisterPatient(Patient) returns(Msg);
+}
+
+message VoidRequest{}
+message RPN {
+    string id = 1;
+    string hospital = 2;
+}
+message RPNs {
+    repeated RPN rpns = 1;
+}
+message Patient{
+    string id = 1;
+    string hospital = 2;
+}
+message Patients{
+    repeated Patient patients = 1;
+}
+message Msg{
+    bool status = 1;
+    string topic = 2;
+    string msg = 3;
+}

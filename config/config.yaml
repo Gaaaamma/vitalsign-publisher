@@ -1,0 +1,32 @@
+setting:
+  host: 0.0.0.0
+  port: 32001
+  proto: vitalSignPublish.proto
+  rpn_base: vitalSign/rpn/
+  patient_base: vitalSign/patient/
+  hrExpireSecs: 60 
+  floatPrecision: 3
+  logMode: 1
+  sleepTime: 5000
+
+api:
+  host: 140.113.213.49
+  port: 5556
+  rpn_patient_list: /RPN/RPN_Patients_List/
+
+wisepaas:
+  host: 140.113.213.49
+  port: 1883
+  websocket: 21883
+  mqtt_user: admin
+  mqtt_password: advant1cH
+
+mongoDB:
+  host: 192.168.2.132
+  port: 27017
+  database: ecg
+  colUser: user
+  colRaw: ecg3_raw
+  colEcg: ecgdata12
+  colVital: rt_vital_sign
+  colBp: bp
