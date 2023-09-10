@@ -38,52 +38,48 @@ type VSP struct {
 	protos.UnimplementedVitalSignPublishServer
 	MuRpn     sync.Mutex
 	MuPatient sync.Mutex
-	RPNs      []RPN
-	Patients  []Patient
+	RPNs      []*protos.RPN
+	Patients  []*protos.Patient
 }
 
-type RPN struct {
-	Id       string
-	Hospital string
-}
-
-type Patient struct {
-	Id       string
-	Hospital string
-}
-
-func (s *VSP) CheckRPNs(ctx context.Context, in *protos.VoidRequest) (*protos.RPNs, error) {
+func (vsp *VSP) CheckRPNs(ctx context.Context, in *protos.VoidRequest) (*protos.RPNs, error) {
+	color.Cyan("%v CheckRPNs: %+v", common.TimeNow(), vsp.RPNs)
 	return nil, status.Errorf(codes.Unimplemented, "method CheckRPNs not implemented")
 }
-func (s *VSP) CheckPatients(ctx context.Context, in *protos.VoidRequest) (*protos.Patients, error) {
+
+func (vsp *VSP) CheckPatients(ctx context.Context, in *protos.VoidRequest) (*protos.Patients, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CheckPatients not implemented")
 }
 
 func (vsp *VSP) RegisterRPN(ctx context.Context, in *protos.RPN) (*protos.Msg, error) {
-	// Parsing
-	rpn := RPN{in.GetId(), in.GetHospital()}
-	topic := fmt.Sprintf("%s%s", conf.Setting.RpnBase, rpn.Id)
+	// Generate MQTT topic
+	topic := fmt.Sprintf("%s%s", conf.Setting.RpnBase, in.Id)
 
 	// Check if RPN is serving or not
 	vsp.MuRpn.Lock()
-	if slices.Contains(vsp.RPNs, rpn) {
+	if slices.ContainsFunc(vsp.RPNs, func(r *protos.RPN) bool {
+		if r.Id == in.Id && r.Hospital == in.Hospital {
+			return true
+		}
+		return false
+	}) {
 		vsp.MuRpn.Unlock()
 		color.Yellow("%v RegisterRPN: RPN {%+v} has been serving", common.TimeNow(), in)
 		return &protos.Msg{Status: false, Topic: topic, Msg: "Fail: already serving"}, nil
 	} else {
-		vsp.RPNs = append(vsp.RPNs, rpn)
+		vsp.RPNs = append(vsp.RPNs, in)
 		vsp.MuRpn.Unlock()
 		color.Cyan("%v RegisterRPN: {%+v}", common.TimeNow(), in)
 	}
 	return &protos.Msg{Status: true, Topic: topic, Msg: "Success: RPN start serving"}, nil
 }
 
-func (s *VSP) UnregisterRPN(ctx context.Context, in *protos.RPN) (*protos.Msg, error) {
+func (vsp *VSP) UnregisterRPN(ctx context.Context, in *protos.RPN) (*protos.Msg, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UnregisterRPN not implemented")
 }
-func (s *VSP) RegisterPatient(ctx context.Context, in *protos.Patient) (*protos.Msg, error) {
+func (vsp *VSP) RegisterPatient(ctx context.Context, in *protos.Patient) (*protos.Msg, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RegisterPatient not implemented")
 }
-func (s *VSP) UnregisterPatient(ctx context.Context, in *protos.Patient) (*protos.Msg, error) {
+func (vsp *VSP) UnregisterPatient(ctx context.Context, in *protos.Patient) (*protos.Msg, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UnregisterPatient not implemented")
 }

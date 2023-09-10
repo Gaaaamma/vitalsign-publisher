@@ -4,14 +4,16 @@ import (
 	"flag"
 	"time"
 	"vitalsign-publisher/common"
+	"vitalsign-publisher/config"
 	"vitalsign-publisher/server"
 
 	"github.com/fatih/color"
 )
 
 var (
-	port   = flag.Int("port", 50051, "The server port")
-	period = flag.Duration("period", 5000, "vitalsign-publisher working period(second)")
+	conf   = config.GetConfig()
+	port   = flag.Int("port", conf.Setting.Port, "The server port")
+	period = flag.Duration("period", time.Duration(conf.Setting.SleepTime), "vitalsign-publisher working period(second)")
 )
 
 func main() {
