@@ -3,11 +3,13 @@ package server
 import (
 	"context"
 	"fmt"
-	"log"
 	"net"
+	"slices"
 	"sync"
+	"vitalsign-publisher/common"
 	"vitalsign-publisher/protos"
 
+	"github.com/fatih/color"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -16,24 +18,35 @@ import (
 func ServerStart(vsp *VSP, port int, ch chan bool) {
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+		color.Red("ServerStart: FAIL - listen port failed: %v", err)
 	}
 
 	s := grpc.NewServer()
 	protos.RegisterVitalSignPublishServer(s, vsp)
-
-	log.Printf("server listening at %v", lis.Addr())
+	color.Green("ServerStart: SUCCESS - server is serving at %v", lis.Addr())
 	ch <- true
+
 	if err := s.Serve(lis); err != nil {
-		log.Fatalf("failed to serve: %v", err)
+		color.Red("ServerStart: FAIL - serve failed: %v", err)
 	}
 }
 
 type VSP struct {
 	protos.UnimplementedVitalSignPublishServer
-	Mutex    sync.Mutex
-	RPNs     []*protos.RPN
-	Patients []*protos.Patient
+	MuRpn     sync.Mutex
+	MuPatient sync.Mutex
+	RPNs      []RPN
+	Patients  []Patient
+}
+
+type RPN struct {
+	Id       string
+	Hospital string
+}
+
+type Patient struct {
+	Id       string
+	Hospital string
 }
 
 func (s *VSP) CheckRPNs(ctx context.Context, in *protos.VoidRequest) (*protos.RPNs, error) {
@@ -42,14 +55,25 @@ func (s *VSP) CheckRPNs(ctx context.Context, in *protos.VoidRequest) (*protos.RP
 func (s *VSP) CheckPatients(ctx context.Context, in *protos.VoidRequest) (*protos.Patients, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CheckPatients not implemented")
 }
-func (s *VSP) RegisterRPN(ctx context.Context, in *protos.RPN) (*protos.Msg, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RegisterRPN not implemented")
-	// s.Mutex.Lock()
-	// s.RPNs = append(s.RPNs, in)
-	// s.Mutex.Unlock()
-	// fmt.Println(in, s.RPNs)
-	// return &protos.Msg{Status: true, Topic: "rpn_topoc", Msg: "rpn_msg"}, nil
+
+func (vsp *VSP) RegisterRPN(ctx context.Context, in *protos.RPN) (*protos.Msg, error) {
+	// Parsing
+	rpn := RPN{in.GetId(), in.GetHospital()}
+
+	// Check if RPN is serving or not
+	vsp.MuRpn.Lock()
+	if slices.Contains(vsp.RPNs, rpn) {
+		vsp.MuRpn.Unlock()
+		color.Yellow("%v RegisterRPN: RPN {%+v} has been serving", common.TimeNow(), in)
+		return &protos.Msg{Status: false, Topic: "", Msg: "Fail: already serving"}, nil
+	} else {
+		vsp.RPNs = append(vsp.RPNs, rpn)
+		vsp.MuRpn.Unlock()
+		color.Cyan("%v RegisterRPN: {%+v}", common.TimeNow(), in)
+	}
+	return &protos.Msg{Status: true, Topic: "rpn_topic", Msg: "Success: RPN start serving"}, nil
 }
+
 func (s *VSP) UnregisterRPN(ctx context.Context, in *protos.RPN) (*protos.Msg, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UnregisterRPN not implemented")
 }
