@@ -128,5 +128,25 @@ func (vsp *VSP) RegisterPatient(ctx context.Context, in *protos.Patient) (*proto
 }
 
 func (vsp *VSP) UnregisterPatient(ctx context.Context, in *protos.Patient) (*protos.Msg, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UnregisterPatient not implemented")
+	// Check if Patient is serving or not
+	vsp.MuPatient.Lock()
+	if index := slices.IndexFunc(vsp.Patients, func(p *protos.Patient) bool {
+		if p.Id == in.Id && p.Hospital == in.Hospital {
+			return true
+		}
+		return false
+	}); index != -1 {
+		// Find index of patient => Remove it from list
+		vsp.Patients = slices.Delete(vsp.Patients, index, index+1)
+		vsp.MuPatient.Unlock()
+		color.Cyan("%v UnregisterPatient: {%+v}", common.TimeNow(), in)
+		msg := fmt.Sprintf("Success: unregister %s from serving list", in.Id)
+		return &protos.Msg{Status: true, Topic: "-", Msg: msg}, nil
+	} else {
+		// Not found
+		vsp.MuPatient.Unlock()
+		color.Yellow("%v UnregisterPatient: Patient {%+v} doesn't exist in list", common.TimeNow(), in)
+		msg := fmt.Sprintf("Fail: %s doesn't exist in list", in.Id)
+		return &protos.Msg{Status: false, Topic: "-", Msg: msg}, nil
+	}
 }
