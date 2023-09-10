@@ -12,8 +12,6 @@ import (
 
 	"github.com/fatih/color"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 var conf = config.GetConfig()
@@ -50,7 +48,10 @@ func (vsp *VSP) CheckRPNs(ctx context.Context, in *protos.VoidRequest) (*protos.
 }
 
 func (vsp *VSP) CheckPatients(ctx context.Context, in *protos.VoidRequest) (*protos.Patients, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CheckPatients not implemented")
+	color.Cyan("%v CheckPatients: %+v", common.TimeNow(), vsp.Patients)
+	vsp.MuPatient.Lock()
+	defer vsp.MuPatient.Unlock()
+	return &protos.Patients{Patients: vsp.Patients}, nil
 }
 
 func (vsp *VSP) RegisterRPN(ctx context.Context, in *protos.RPN) (*protos.Msg, error) {
