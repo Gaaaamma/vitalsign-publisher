@@ -1,7 +1,6 @@
 setting:
   host: 0.0.0.0
   port: 32001
-  proto: vitalSignPublish.proto
   rpn_base: vitalSign/rpn/
   patient_base: vitalSign/patient/
   hrExpireSecs: 60 
