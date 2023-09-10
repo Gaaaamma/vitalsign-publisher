@@ -29,8 +29,12 @@ func main() {
 
 	for {
 		vsp.MuRpn.Lock()
-		color.Cyan("%v %v", common.TimeNow(), vsp.RPNs)
+		color.Cyan("%v RPNs: %v", common.TimeNow(), vsp.RPNs)
 		vsp.MuRpn.Unlock()
+
+		vsp.MuPatient.Lock()
+		color.Cyan("%v Patients: %v", common.TimeNow(), vsp.Patients)
+		vsp.MuPatient.Unlock()
 		time.Sleep((*period) * time.Millisecond)
 	}
 }

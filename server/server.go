@@ -103,8 +103,30 @@ func (vsp *VSP) UnregisterRPN(ctx context.Context, in *protos.RPN) (*protos.Msg,
 }
 
 func (vsp *VSP) RegisterPatient(ctx context.Context, in *protos.Patient) (*protos.Msg, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RegisterPatient not implemented")
+	// Generate MQTT topic
+	topic := fmt.Sprintf("%s%s", conf.Setting.PatientBase, in.Id)
+
+	// Check if patient is serving or not
+	vsp.MuPatient.Lock()
+	if slices.ContainsFunc(vsp.Patients, func(p *protos.Patient) bool {
+		if p.Id == in.Id && p.Hospital == in.Hospital {
+			return true
+		}
+		return false
+	}) {
+		vsp.MuPatient.Unlock()
+		color.Yellow("%v RegisterPatient: Patient {%+v} has been serving", common.TimeNow(), in)
+		msg := fmt.Sprintf("Fail: %s is serving already", in.Id)
+		return &protos.Msg{Status: false, Topic: topic, Msg: msg}, nil
+	} else {
+		vsp.Patients = append(vsp.Patients, in)
+		vsp.MuPatient.Unlock()
+		color.Cyan("%v RegisterPatient: {%+v}", common.TimeNow(), in)
+		msg := fmt.Sprintf("Success: start serving Patient %s", in.Id)
+		return &protos.Msg{Status: true, Topic: topic, Msg: msg}, nil
+	}
 }
+
 func (vsp *VSP) UnregisterPatient(ctx context.Context, in *protos.Patient) (*protos.Msg, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UnregisterPatient not implemented")
 }
