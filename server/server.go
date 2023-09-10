@@ -44,7 +44,9 @@ type VSP struct {
 
 func (vsp *VSP) CheckRPNs(ctx context.Context, in *protos.VoidRequest) (*protos.RPNs, error) {
 	color.Cyan("%v CheckRPNs: %+v", common.TimeNow(), vsp.RPNs)
-	return nil, status.Errorf(codes.Unimplemented, "method CheckRPNs not implemented")
+	vsp.MuRpn.Lock()
+	defer vsp.MuRpn.Unlock()
+	return &protos.RPNs{Rpns: vsp.RPNs}, nil
 }
 
 func (vsp *VSP) CheckPatients(ctx context.Context, in *protos.VoidRequest) (*protos.Patients, error) {
