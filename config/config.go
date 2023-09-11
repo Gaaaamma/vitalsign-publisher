@@ -38,11 +38,14 @@ type Config struct {
 		Host     string `yaml:"host"`
 		Port     int    `yaml:"port"`
 		Database string `yaml:"database"`
-		ColUser  string `yaml:"colUser"`
-		ColRaw   string `yaml:"colRaw"`
-		ColEcg   string `yaml:"colEcg"`
-		ColVital string `yaml:"colVital"`
-		ColBp    string `yaml:"colBp"`
+		User     string `yaml:"colUser"`
+		Raw      string `yaml:"colRaw"`
+		Ecg      string `yaml:"colEcg"`
+		Vital    string `yaml:"colVital"`
+		BP       string `yaml:"colBp"`
+		HR       string `yaml:"rehab_hr"`
+		VO2      string `yaml:"rehab_VO2"`
+		CO       string `yaml:"rehab_CO"`
 	} `yaml:"mongoDB"`
 }
 

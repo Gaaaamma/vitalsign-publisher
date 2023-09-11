@@ -27,5 +27,8 @@ mongoDB:
   colUser: user
   colRaw: ecg3_raw
   colEcg: ecgdata12
-  colVital: rt_vital_sign
+  colVital: vital_sign
   colBp: bp
+  colHR: rehab_hr
+  colVO2: rehab_VO2
+  colCO: rehab_CO

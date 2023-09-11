@@ -7,10 +7,12 @@ import (
 	"time"
 	"vitalsign-publisher/common"
 	"vitalsign-publisher/config"
+	"vitalsign-publisher/mongodb"
 	"vitalsign-publisher/request"
 	"vitalsign-publisher/server"
 
 	"github.com/fatih/color"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 var (
@@ -29,6 +31,21 @@ func main() {
 		color.Red("server.ServerStart: FAIL - gRPC ServerStart isn't serving")
 		return
 	}
+
+	// Mongo database setting
+	ctx, _, client, err := mongodb.GetMongoClient()
+	if err != nil {
+		panic(err)
+	}
+
+	// colUser := client.Database(conf.MongoDB.Database).Collection(conf.MongoDB.User)
+	// colRaw := client.Database(conf.MongoDB.Database).Collection(conf.MongoDB.Raw)
+	// colEcg := client.Database(conf.MongoDB.Database).Collection(conf.MongoDB.Ecg)
+	colVital := client.Database(conf.MongoDB.Database).Collection(conf.MongoDB.Vital)
+	// colBp := client.Database(conf.MongoDB.Database).Collection(conf.MongoDB.BP)
+	// colHR := client.Database(conf.MongoDB.Database).Collection(conf.MongoDB.HR)
+	// colVO2 := client.Database(conf.MongoDB.Database).Collection(conf.MongoDB.VO2)
+	// colCO := client.Database(conf.MongoDB.Database).Collection(conf.MongoDB.CO)
 
 	// Serving Loop
 	for {
@@ -60,6 +77,13 @@ func main() {
 			color.HiGreen("%+v", data.Patients_list)
 
 			// Step2. Packing data from mongoDB for each patient
+			vital := mongodb.VitalSign{}
+			filter := bson.M{"Patient_CodeID": "NCTU0000"}
+			err = colVital.FindOne(ctx, filter).Decode(&vital)
+			if err != nil {
+				color.Red("%s", err)
+			}
+			color.HiGreen("%+v", vital)
 
 			// Step2-1. Get VitalSign data (Default value is set if data didn't exist)
 
