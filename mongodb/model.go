@@ -29,6 +29,23 @@ type User struct {
 	LastTimeBP        int    `bson:"lasttime_bp"`
 }
 
+type RT_ECG struct {
+	UserID    string    `bson:"userId"`
+	Timestamp int       `bson:"time"`
+	I         []float64 `bson:"I"`
+	II        []float64 `bson:"II"`
+	III       []float64 `bson:"III"`
+	AVR       []float64 `bson:"aVR"`
+	AVL       []float64 `bson:"aVL"`
+	AVF       []float64 `bson:"aVF"`
+	V1        []float64 `bson:"V1"`
+	V2        []float64 `bson:"V2"`
+	V3        []float64 `bson:"V3"`
+	V4        []float64 `bson:"V4"`
+	V5        []float64 `bson:"V5"`
+	V6        []float64 `bson:"V6"`
+}
+
 type VitalSign struct {
 	UserID        string  `bson:"Patient_CodeID"`
 	PublishStatus int     `bson:"publishStatus"`
@@ -40,4 +57,28 @@ type VitalSign struct {
 	Rehb_res      int     `bson:"rehab_respiratory"`
 	MET           float64 `bson:"MET"`
 	Rehb_SPO2     int     `bson:"rehab_SPO2"`
+}
+
+type Bp struct {
+	UserID    string `bson:"userId"`
+	Timestamp int    `bson:"time"`
+	Value     []int  `bson:"bp"`
+}
+
+type Rehb_HR struct {
+	UserID    string `bson:"Patient_CodeID"`
+	Timestamp int    `bson:"timestamp"`
+	Value     int    `bson:"heart_rate"`
+}
+
+type Rehb_CO struct {
+	UserID    string  `bson:"Patient_CodeID"`
+	Timestamp int     `bson:"timestamp"`
+	Value     float64 `bson:"CO"`
+}
+
+type Rehb_VO2 struct {
+	UserID    string `bson:"Patient_CodeID"`
+	Timestamp int    `bson:"timestamp"`
+	Value     int    `bson:"VO2"`
 }
