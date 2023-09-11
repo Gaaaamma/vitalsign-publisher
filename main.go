@@ -77,7 +77,7 @@ func main() {
 			color.HiGreen("%+v", data.Patients_list)
 
 			// Step2. Packing data from mongoDB for each patient
-			vital := mongodb.VitalSign{}
+			vital := mongodb.RT_VitalSign{}
 			filter := bson.M{"Patient_CodeID": "NCTU0000"}
 			err = colVital.FindOne(ctx, filter).Decode(&vital)
 			if err != nil {

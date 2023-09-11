@@ -46,17 +46,15 @@ type RT_ECG struct {
 	V6        []float64 `bson:"V6"`
 }
 
-type VitalSign struct {
-	UserID        string  `bson:"Patient_CodeID"`
-	PublishStatus int     `bson:"publishStatus"`
-	SBP           int     `bson:"SBP"`
-	DBP           int     `bson:"DBP"`
-	VO2MAX        int     `bson:"VO2MAX"`
-	RESPIRATORY   []int   `bson:"RESPIRATORY"`
-	SPO2          []int   `bson:"SPO2"`
-	Rehb_res      int     `bson:"rehab_respiratory"`
-	MET           float64 `bson:"MET"`
-	Rehb_SPO2     int     `bson:"rehab_SPO2"`
+type RT_VitalSign struct {
+	UserID      string  `bson:"Patient_CodeID"`
+	HR          int     `bson:"HR"`
+	SBP         int     `bson:"SBP"`
+	DBP         int     `bson:"DBP"`
+	RESPIRATORY int     `bson:"RESPIRATORY"`
+	SPO2        int     `bson:"SPO2"`
+	VO2MAX      int     `bson:"VO2MAX"`
+	MET         float64 `bson:"MET"`
 }
 
 type Bp struct {
