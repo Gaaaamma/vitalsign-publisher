@@ -76,7 +76,7 @@ type Rehb_CO struct {
 }
 
 type Rehb_VO2 struct {
-	UserID    string `bson:"Patient_CodeID"`
-	Timestamp int    `bson:"timestamp"`
-	Value     int    `bson:"VO2"`
+	UserID    string  `bson:"Patient_CodeID"`
+	Timestamp int     `bson:"timestamp"`
+	Value     float64 `bson:"VO2"`
 }
