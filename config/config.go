@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/fatih/color"
 	"gopkg.in/yaml.v3"
 )
 
@@ -65,6 +64,5 @@ func GetConfig() Config {
 	if err != nil {
 		panic(err)
 	}
-	color.Green("GetConfig: SUCCESS - reading config.yaml")
 	return conf
 }

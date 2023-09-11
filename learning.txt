@@ -1,0 +1,45 @@
+============================== gRPC ==============================
+option go_package:
+gRPC 會透過 protoc 編譯 PROTO_NAME.proto 
+產生兩份檔案，分別為 PROTO_NAME.pb.go 與 PROTO_NAME_grpc.pb.go
+PROTO_NAME.pb.go 負責定義 gRPC 輸入與輸出的資料結構
+PROTO_NAME_grpc.pb.go 負責定義 gRPC client 與 Server 使用的 function
+go_package 的選項主要是為了提供產生出來的 code 的 package name，來讓其他程式碼 import 使用
+
+import:
+(1) 程式碼在引用其他 package 的時，都是以 go.mod 的 module path 作為搜尋根據
+    我們可以觀察 main.go 或是 server.go 在引用 package 時
+    都是以 vitalsign-publisher 為起始，後面接上 package 的名稱
+    import "vitalsign-publisher/server"
+
+(2) 使用資料夾分隔程式碼時，資料夾內的 package 建議要與資料夾名稱相同 (非硬性但建議)
+    如此在 import 時較不會產生問題 可以直接引用
+
+    如果資料夾與 package 的名稱有所不同 則引用的方式需要稍微修改
+    - project
+     | - dirA
+     |  | -  codeA.go (package mypack)
+     | - main.go 
+     | - go.mod (module modpath)
+
+    此時如果想要引用 codeA.go 裡面的程式時 
+    引用的方式還是資料夾路徑 但前綴要接上 package 的名稱 
+    import (
+       mypack "modpath/dirA"
+    )
+    mypack.FuncInCodeA()
+
+============================== JSON ==============================
+使用 standard libray "encoding/json" 來做 json 資料的轉換
+為了協助資料欄位做對應 我們使用 "struct field tag" 來做映射
+  - 如果不使用 struct field tag 則結構的欄位名稱必須跟取得資料的欄位相同
+    否則無法正確剖析資料
+  - 使用 struct field tag 可以自行設定欄位名稱
+    同時也可正確剖析接收到的資料欄位
+
+可以參考 request.go 的做法 此外也可以做額外的設定
+
+============================== YAML ==============================
+使用 "gopkg.in/yaml.v3" 來做 yaml 資料的轉換
+同樣為了協助資料欄位做對應 我們使用 "struct field tag" 來做映射
+可以參考 config.go 的做法
