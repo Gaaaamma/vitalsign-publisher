@@ -8,11 +8,13 @@ import (
 	"vitalsign-publisher/common"
 	"vitalsign-publisher/config"
 	"vitalsign-publisher/mongodb"
+	"vitalsign-publisher/mqtt"
 	"vitalsign-publisher/request"
 	"vitalsign-publisher/server"
 
 	"github.com/fatih/color"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 var (
@@ -38,14 +40,13 @@ func main() {
 		panic(err)
 	}
 
-	// colUser := client.Database(conf.MongoDB.Database).Collection(conf.MongoDB.User)
-	// colRaw := client.Database(conf.MongoDB.Database).Collection(conf.MongoDB.Raw)
-	// colEcg := client.Database(conf.MongoDB.Database).Collection(conf.MongoDB.Ecg)
+	colUser := client.Database(conf.MongoDB.Database).Collection(conf.MongoDB.User)
+	colEcg := client.Database(conf.MongoDB.Database).Collection(conf.MongoDB.Ecg)
 	colVital := client.Database(conf.MongoDB.Database).Collection(conf.MongoDB.Vital)
-	// colBp := client.Database(conf.MongoDB.Database).Collection(conf.MongoDB.BP)
-	// colHR := client.Database(conf.MongoDB.Database).Collection(conf.MongoDB.HR)
-	// colVO2 := client.Database(conf.MongoDB.Database).Collection(conf.MongoDB.VO2)
-	// colCO := client.Database(conf.MongoDB.Database).Collection(conf.MongoDB.CO)
+	colBp := client.Database(conf.MongoDB.Database).Collection(conf.MongoDB.BP)
+	colHR := client.Database(conf.MongoDB.Database).Collection(conf.MongoDB.HR)
+	colVO2 := client.Database(conf.MongoDB.Database).Collection(conf.MongoDB.VO2)
+	colCO := client.Database(conf.MongoDB.Database).Collection(conf.MongoDB.CO)
 
 	// Serving Loop
 	for {
@@ -56,6 +57,8 @@ func main() {
 
 		color.Cyan("%v RPNs: %v", common.TimeNow(), rpns)
 		for _, rpn := range rpns {
+			rpnPublish := mqtt.RPNPublish{}
+
 			// Step1. Get patient list from API server
 			data, err := request.GetPatientsByRPN(rpn)
 			if err != nil {
@@ -74,24 +77,155 @@ func main() {
 				continue
 			}
 
-			color.HiGreen("%+v", data.Patients_list)
-
 			// Step2. Packing data from mongoDB for each patient
-			vital := mongodb.RT_VitalSign{}
-			filter := bson.M{"Patient_CodeID": "NCTU0000"}
-			err = colVital.FindOne(ctx, filter).Decode(&vital)
-			if err != nil {
-				color.Red("%s", err)
+			// rpnUploading := mqtt.RPNPublish{}
+			for _, p := range data.Patients_list {
+				checker := map[string]int{
+					"VitalSign": 0,
+					"RT_ECG":    0,
+					"BP":        0,
+					"HR":        0,
+					"VO2":       0,
+					"CO":        0,
+				}
+				record := mqtt.RPNPatientPublish{UserID: p.Patient_CodeID}
+
+				// Step2-1. Get VitalSign data
+				filter := bson.M{"Patient_CodeID": p.Patient_CodeID}
+				if err = colVital.FindOne(ctx, filter).Decode(&record); err != nil {
+					color.Red("Get VitalSign Data %s: %s", p.Patient_CodeID, err)
+					continue
+				}
+				checker["VitalSign"] += 1
+
+				// Step2-2. Get Ecg standard 12 lead data
+				// Query ecg.user
+				userData := mongodb.User{}
+				filter = bson.M{"userId": p.Patient_CodeID}
+				if err = colUser.FindOne(ctx, filter).Decode(&userData); err != nil {
+					color.Red("Get User Data %s: %s", p.Patient_CodeID, err)
+					continue
+				}
+				record.Lasttime_12lead = userData.LastTime12Lead
+				record.Lasttime_bp = userData.LastTimeBP
+
+				// Query ecg.ecgdata12
+				filter = bson.M{
+					"userId": p.Patient_CodeID,
+					"time": bson.M{
+						"$gt":  userData.LastTime12Lead - 5,
+						"$lte": userData.LastTime12Lead,
+					},
+				}
+				if cursor, err := colEcg.Find(ctx, filter); err != nil {
+					color.Red("Get RT_ECG %s: %s", p.Patient_CodeID, err)
+				} else {
+					for cursor.Next(ctx) {
+						ecg := mongodb.RT_ECG{}
+						if err = cursor.Decode(&ecg); err != nil {
+							color.Red("Cursor decoded ecg %s: %s", p.Patient_CodeID, err)
+							continue
+						}
+						record.Lead2 = append(record.Lead2, mqtt.PublishECG{UserId: ecg.UserID, Time: ecg.Timestamp, II: ecg.II})
+						checker["RT_ECG"] += 1
+					}
+					err = cursor.Close(ctx)
+					if err != nil {
+						color.Red("Close RT_ECG %s: %s", p.Patient_CodeID, err)
+					}
+				}
+
+				// Step2-3. Get BP data
+				filter = bson.M{
+					"userId": p.Patient_CodeID,
+					"time": bson.M{
+						"$gt":  userData.LastTimeBP - 5,
+						"$lte": userData.LastTimeBP,
+					},
+				}
+				if cursor, err := colBp.Find(ctx, filter); err != nil {
+					color.Red("Get Bp %s: %s", p.Patient_CodeID, err)
+				} else {
+					for cursor.Next(ctx) {
+						bp := mongodb.Bp{}
+						if err = cursor.Decode(&bp); err != nil {
+							color.Red("Cursor decoded bp %s: %s", p.Patient_CodeID, err)
+							continue
+						}
+						record.Bp = append(record.Bp, bp)
+						checker["BP"] += 1
+					}
+					err = cursor.Close(ctx)
+					if err != nil {
+						color.Red("Close BP %s: %s", p.Patient_CodeID, err)
+					}
+				}
+
+				// Step2-4. Get HR data
+				filter = bson.M{"Patient_CodeID": p.Patient_CodeID}
+				options := options.Find().SetSort(bson.D{{Key: "timestamp", Value: -1}}).SetLimit(5)
+				if cursor, err := colHR.Find(ctx, filter, options); err != nil {
+					fmt.Print("??")
+					color.Red("Get HR %s: %s", p.Patient_CodeID, err)
+				} else {
+					for cursor.Next(ctx) {
+						hr := mongodb.Rehb_HR{}
+						if cursor.Decode(&hr); err != nil {
+							color.Red("Cursor decoded hr %s: %s", p.Patient_CodeID, err)
+							continue
+						}
+						record.Rehab_hr = append(record.Rehab_hr, hr)
+						checker["HR"] += 1
+					}
+					cursor.Close(ctx)
+					if err != nil {
+						color.Red("Close HR %s: %s", p.Patient_CodeID, err)
+					}
+				}
+
+				// Step2-5. Get VO2 data
+				if cursor, err := colVO2.Find(ctx, filter, options); err != nil {
+					color.Red("Get VO2 %s: %s", p.Patient_CodeID, err)
+				} else {
+					for cursor.Next(ctx) {
+						vo2 := mongodb.Rehb_VO2{}
+						if cursor.Decode(&vo2); err != nil {
+							color.Red("Cursor decoded VO2 %s: %s", p.Patient_CodeID, err)
+							continue
+						}
+						record.Rehab_VO2 = append(record.Rehab_VO2, vo2)
+						checker["VO2"] += 1
+					}
+					cursor.Close(ctx)
+					if err != nil {
+						color.Red("Close VO2 %s: %s", p.Patient_CodeID, err)
+					}
+				}
+
+				// Step2-6. Get CO data
+				if cursor, err := colCO.Find(ctx, filter, options); err != nil {
+					color.Red("Get CO %s: %s", p.Patient_CodeID, err)
+				} else {
+					for cursor.Next(ctx) {
+						co := mongodb.Rehb_CO{}
+						if cursor.Decode(&co); err != nil {
+							color.Red("Cursor decoded co %s: %s", p.Patient_CodeID, err)
+							continue
+						}
+						record.Rehab_CO = append(record.Rehab_CO, co)
+						checker["CO"] += 1
+					}
+					cursor.Close(ctx)
+					if err != nil {
+						color.Red("Close HR %s: %s", p.Patient_CodeID, err)
+					}
+				}
+				common.DataChecker(p.Patient_CodeID, checker)
+
+				// Step3. Pack record to rpnPublish
+				rpnPublish.Patients = append(rpnPublish.Patients, record)
 			}
-			color.HiGreen("%+v", vital)
-
-			// Step2-1. Get VitalSign data (Default value is set if data didn't exist)
-
-			// Step2-2. Get Ecg standard 12 lead data
-
-			// Step2-3. Get BP data
-
-			// Step3. Push data to MQTT broker
+			// Step4. Push data to MQTT broker
 
 		}
 

@@ -43,9 +43,9 @@ type Config struct {
 		Ecg      string `yaml:"colEcg"`
 		Vital    string `yaml:"colVital"`
 		BP       string `yaml:"colBp"`
-		HR       string `yaml:"rehab_hr"`
-		VO2      string `yaml:"rehab_VO2"`
-		CO       string `yaml:"rehab_CO"`
+		HR       string `yaml:"colHR"`
+		VO2      string `yaml:"colVO2"`
+		CO       string `yaml:"colCO"`
 	} `yaml:"mongoDB"`
 }
 
