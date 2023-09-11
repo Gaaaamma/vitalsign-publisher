@@ -60,9 +60,9 @@ type VitalSign struct {
 }
 
 type Bp struct {
-	UserID    string `bson:"userId"`
-	Timestamp int    `bson:"time"`
-	Value     []int  `bson:"bp"`
+	UserID    string    `bson:"userId"`
+	Timestamp int       `bson:"time"`
+	Value     []float64 `bson:"bp"`
 }
 
 type Rehb_HR struct {
