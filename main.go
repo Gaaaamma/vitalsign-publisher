@@ -46,13 +46,17 @@ func main() {
 				continue
 			}
 
-			// Step1-1 Filter rpn without patients
+			// Step1-1 Filter patient that status == 4 (Uploading differential leads)
+			data.Patients_list = slices.DeleteFunc(data.Patients_list, func(p request.Patient) bool {
+				return p.Patient_Status != 4
+			})
+
+			// Step1-2 Filter rpn without patients
 			if len(data.Patients_list) == 0 {
-				color.Yellow("RPN %s: no any binding patient", rpn.Id)
+				color.Yellow("RPN %s: no any binding patient or uploading data (patient.status != 4)", rpn.Id)
 				continue
 			}
 
-			// Step1-2 Filter patient that status == 4 (Uploading differential leads)
 			color.HiGreen("%+v", data.Patients_list)
 
 			// Step2. Packing data from mongoDB for each patient
