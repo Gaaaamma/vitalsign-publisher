@@ -43,3 +43,14 @@ import:
 使用 "gopkg.in/yaml.v3" 來做 yaml 資料的轉換
 同樣為了協助資料欄位做對應 我們使用 "struct field tag" 來做映射
 可以參考 config.go 的做法
+
+============================== MongoDB ==============================
+Context:
+可以更靈活的操作各種goroutine，可主動結束或是設置結束條件
+
+func init():
+此函式為 golang 的關鍵字
+作為初始化 package 使用 會在主程式執行之前執行
+package 內可以撰寫多個 func init() 他們會依順序執行
+
+初始化順序 import --> const --> var --> init()
