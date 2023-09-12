@@ -55,6 +55,7 @@ type RT_VitalSign struct {
 	SPO2        int     `bson:"SPO2"`
 	VO2MAX      int     `bson:"VO2MAX"`
 	MET         float64 `bson:"MET"`
+	DISTANCE    int     `bson:"DISTANCE"`
 }
 
 type Bp struct {

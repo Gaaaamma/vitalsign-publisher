@@ -16,8 +16,9 @@ type RPNPatientPublish struct {
 	Lead2           []PublishECG `json:"lead2"`
 	Lasttime_bp     int          `json:"lasttime_bp"`
 	Bp              []mongodb.Bp `json:"bp"`
-	VO2             float64      `json:"vo2"`
-	CO              float64      `json:"co"`
+	VO2             float64      `json:"VO2"`
+	CO              float64      `json:"CO"`
+	DISTANCE        int          `json:"DISTANCE"`
 }
 
 type PublishECG struct {
