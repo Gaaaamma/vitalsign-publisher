@@ -80,7 +80,7 @@ func main() {
 			// Step2. Packing data from mongoDB for each patient
 			// rpnUploading := mqtt.RPNPublish{}
 			for _, p := range data.Patients_list {
-				checker := map[string]int{
+				checker := map[string]float64{
 					"VitalSign": 0,
 					"RT_ECG":    0,
 					"BP":        0,
@@ -163,69 +163,41 @@ func main() {
 
 				// Step2-4. Get HR data
 				filter = bson.M{"Patient_CodeID": p.Patient_CodeID}
-				options := options.Find().SetSort(bson.D{{Key: "timestamp", Value: -1}}).SetLimit(5)
-				if cursor, err := colHR.Find(ctx, filter, options); err != nil {
-					fmt.Print("??")
-					color.Red("Get HR %s: %s", p.Patient_CodeID, err)
+				options := options.FindOne().SetSort(bson.D{{Key: "timestamp", Value: -1}})
+				hr := mongodb.Rehb_HR{}
+				if err := colHR.FindOne(ctx, filter, options).Decode(&hr); err != nil {
+					color.Yellow("Get HR %s: %s", p.Patient_CodeID, err)
+					record.HR = -1
 				} else {
-					for cursor.Next(ctx) {
-						hr := mongodb.Rehb_HR{}
-						if cursor.Decode(&hr); err != nil {
-							color.Red("Cursor decoded hr %s: %s", p.Patient_CodeID, err)
-							continue
-						}
-						record.Rehab_hr = append(record.Rehab_hr, hr)
-						checker["HR"] += 1
-					}
-					cursor.Close(ctx)
-					if err != nil {
-						color.Red("Close HR %s: %s", p.Patient_CodeID, err)
-					}
+					record.HR = hr.Value
+					checker["HR"] = float64(hr.Value)
 				}
 
 				// Step2-5. Get VO2 data
-				if cursor, err := colVO2.Find(ctx, filter, options); err != nil {
-					color.Red("Get VO2 %s: %s", p.Patient_CodeID, err)
+				vo2 := mongodb.Rehb_VO2{}
+				if err := colVO2.FindOne(ctx, filter, options).Decode(&vo2); err != nil {
+					color.Yellow("Get VO2 %s: %s", p.Patient_CodeID, err)
+					record.VO2 = -1.0
 				} else {
-					for cursor.Next(ctx) {
-						vo2 := mongodb.Rehb_VO2{}
-						if cursor.Decode(&vo2); err != nil {
-							color.Red("Cursor decoded VO2 %s: %s", p.Patient_CodeID, err)
-							continue
-						}
-						record.Rehab_VO2 = append(record.Rehab_VO2, vo2)
-						checker["VO2"] += 1
-					}
-					cursor.Close(ctx)
-					if err != nil {
-						color.Red("Close VO2 %s: %s", p.Patient_CodeID, err)
-					}
+					record.VO2 = vo2.Value
+					checker["VO2"] = vo2.Value
 				}
 
 				// Step2-6. Get CO data
-				if cursor, err := colCO.Find(ctx, filter, options); err != nil {
-					color.Red("Get CO %s: %s", p.Patient_CodeID, err)
+				co := mongodb.Rehb_CO{}
+				if err := colCO.FindOne(ctx, filter, options).Decode(&co); err != nil {
+					color.Yellow("Get CO %s: %s", p.Patient_CodeID, err)
+					record.CO = -1.0
 				} else {
-					for cursor.Next(ctx) {
-						co := mongodb.Rehb_CO{}
-						if cursor.Decode(&co); err != nil {
-							color.Red("Cursor decoded co %s: %s", p.Patient_CodeID, err)
-							continue
-						}
-						record.Rehab_CO = append(record.Rehab_CO, co)
-						checker["CO"] += 1
-					}
-					cursor.Close(ctx)
-					if err != nil {
-						color.Red("Close HR %s: %s", p.Patient_CodeID, err)
-					}
+					record.CO = co.Value
+					checker["CO"] = co.Value
 				}
-				common.DataChecker(p.Patient_CodeID, checker)
 
 				// Step3. Pack record to rpnPublish
+				common.DataChecker(p.Patient_CodeID, checker)
 				rpnPublish.Patients = append(rpnPublish.Patients, record)
 			}
-			// Step4. Push data to MQTT broker
+			// Step4. Publish data to MQTT broker
 
 		}
 
