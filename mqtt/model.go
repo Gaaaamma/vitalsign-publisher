@@ -2,9 +2,6 @@ package mqtt
 
 import "vitalsign-publisher/mongodb"
 
-type RPNPublish struct {
-	Patients []RPNPatientPublish
-}
 type RPNPatientPublish struct {
 	UserID          string       `json:"Patient_CodeID"`
 	HR              int          `json:"HR"`
