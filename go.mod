@@ -9,8 +9,10 @@ require (
 )
 
 require (
+	github.com/eclipse/paho.mqtt.golang v1.4.3 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/golang/snappy v0.0.1 // indirect
+	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/klauspost/compress v1.13.6 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect

@@ -58,25 +58,25 @@ type RT_VitalSign struct {
 }
 
 type Bp struct {
-	UserID    string    `bson:"userId"`
-	Timestamp int       `bson:"time"`
-	Value     []float64 `bson:"bp"`
+	UserID    string    `bson:"userId" json:"userId"`
+	Timestamp int       `bson:"time" json:"time"`
+	Value     []float64 `bson:"bp" json:"bp"`
 }
 
 type Rehb_HR struct {
-	UserID    string `bson:"Patient_CodeID"`
-	Timestamp int    `bson:"timestamp"`
-	Value     int    `bson:"heart_rate"`
+	UserID    string `bson:"Patient_CodeID" json:"userId"`
+	Timestamp int    `bson:"timestamp" json:"time"`
+	Value     int    `bson:"heart_rate" json:"hr"`
 }
 
 type Rehb_CO struct {
-	UserID    string  `bson:"Patient_CodeID"`
-	Timestamp int     `bson:"timestamp"`
-	Value     float64 `bson:"CO"`
+	UserID    string  `bson:"Patient_CodeID" json:"userId"`
+	Timestamp int     `bson:"timestamp" json:"time"`
+	Value     float64 `bson:"CO" json:"co"`
 }
 
 type Rehb_VO2 struct {
-	UserID    string  `bson:"Patient_CodeID"`
-	Timestamp int     `bson:"timestamp"`
-	Value     float64 `bson:"VO2"`
+	UserID    string  `bson:"Patient_CodeID" json:"userId"`
+	Timestamp int     `bson:"timestamp" json:"time"`
+	Value     float64 `bson:"VO2" json:"vo2"`
 }
