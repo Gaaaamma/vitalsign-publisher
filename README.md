@@ -1,3 +1,4 @@
+![plot](./cover.png)
 # vitalsign-publisher
 The Vitalsign Publisher project is a Golang application that collects and publishes vital sign data from patients to an MQTT broker. The serving rpn(nurse) list is modified by jack-api via gRPC. It gets all patients information belongs to the nurse by api, retrieves relevant data from a MongoDB database, and packages the data into a specific format before publishing it to the MQTT broker.
 
