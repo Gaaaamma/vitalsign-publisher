@@ -170,32 +170,32 @@ func main() {
 					options := options.FindOne().SetSort(bson.D{{Key: "timestamp", Value: -1}})
 					hr := mongodb.Rehb_HR{}
 					if err := colHR.FindOne(ctx, filter, options).Decode(&hr); err != nil {
-						color.Yellow("Get HR %s: %s", p.Patient_CodeID, err)
+						// color.Yellow("Get HR %s: %s", p.Patient_CodeID, err)
 						record.HR = -1
 					} else {
 						record.HR = hr.Value
-						checker["HR"] = float64(hr.Value)
 					}
+					checker["HR"] = float64(record.HR)
 
 					// Step2-5. Get VO2 data
 					vo2 := mongodb.Rehb_VO2{}
 					if err := colVO2.FindOne(ctx, filter, options).Decode(&vo2); err != nil {
-						color.Yellow("Get VO2 %s: %s", p.Patient_CodeID, err)
+						// color.Yellow("Get VO2 %s: %s", p.Patient_CodeID, err)
 						record.VO2 = -1.0
 					} else {
 						record.VO2 = vo2.Value
-						checker["VO2"] = vo2.Value
 					}
+					checker["VO2"] = record.VO2
 
 					// Step2-6. Get CO data
 					co := mongodb.Rehb_CO{}
 					if err := colCO.FindOne(ctx, filter, options).Decode(&co); err != nil {
-						color.Yellow("Get CO %s: %s", p.Patient_CodeID, err)
+						// color.Yellow("Get CO %s: %s", p.Patient_CodeID, err)
 						record.CO = -1.0
 					} else {
 						record.CO = co.Value
-						checker["CO"] = co.Value
 					}
+					checker["CO"] = record.CO
 
 					// Step3. Pack record to rpnPublish
 					common.DataChecker(p.Patient_CodeID, checker)

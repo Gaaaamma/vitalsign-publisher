@@ -3,9 +3,6 @@ setting:
   port: 32001
   rpn_base: vitalSign/rpn/
   patient_base: vitalSign/patient/
-  hrExpireSecs: 60 
-  floatPrecision: 3
-  logMode: 1
   sleepTime: 5000
 
 api:
@@ -17,8 +14,6 @@ wisepaas:
   host: 140.113.213.49
   port: 1883
   websocket: 21883
-  mqtt_user: admin
-  mqtt_password: advant1cH
 
 mongoDB:
   host: 192.168.2.132

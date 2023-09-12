@@ -2,6 +2,7 @@ package mqtt
 
 import (
 	"fmt"
+	"os"
 	"vitalsign-publisher/config"
 
 	MQTT "github.com/eclipse/paho.mqtt.golang"
@@ -18,8 +19,8 @@ func init() {
 	brokerOrigin := fmt.Sprintf("tcp://%s:%d", conf.Wisepaas.Host, conf.Wisepaas.Port)
 	opts := MQTT.NewClientOptions()
 	opts.AddBroker(brokerOrigin)
-	opts.SetUsername(conf.Wisepaas.MqttUser)
-	opts.SetPassword(conf.Wisepaas.MqttPassword)
+	opts.SetUsername(os.Getenv("MQTT_USER"))
+	opts.SetPassword(os.Getenv("MQTT_PASSWORD"))
 	opts.SetClientID("Origin")
 
 	clientOrigin = MQTT.NewClient(opts)
@@ -33,8 +34,8 @@ func init() {
 	brokerWeb := fmt.Sprintf("tcp://%s:%d", conf.Wisepaas.Host, conf.Wisepaas.Websocket)
 	optsA := MQTT.NewClientOptions()
 	optsA.AddBroker(brokerWeb)
-	optsA.SetUsername(conf.Wisepaas.MqttUser)
-	optsA.SetPassword(conf.Wisepaas.MqttPassword)
+	optsA.SetUsername(os.Getenv("MQTT_USER"))
+	optsA.SetPassword(os.Getenv("MQTT_PASSWORD"))
 	optsA.SetClientID("Web")
 
 	clientWeb = MQTT.NewClient(optsA)

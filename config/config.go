@@ -10,14 +10,11 @@ import (
 // Define a struct that matches the structure of your YAML configuration.
 type Config struct {
 	Setting struct {
-		Host           string `yaml:"host"`
-		Port           int    `yaml:"port"`
-		RpnBase        string `yaml:"rpn_base"`
-		PatientBase    string `yaml:"patient_base"`
-		HrExpireSecs   int    `yaml:"hrExpireSecs"`
-		FloatPrecision int    `yaml:"floatPrecision"`
-		LogMode        int    `yaml:"logMode"`
-		SleepTime      int    `yaml:"sleepTime"`
+		Host        string `yaml:"host"`
+		Port        int    `yaml:"port"`
+		RpnBase     string `yaml:"rpn_base"`
+		PatientBase string `yaml:"patient_base"`
+		SleepTime   int    `yaml:"sleepTime"`
 	} `yaml:"setting"`
 
 	Api struct {
@@ -27,11 +24,9 @@ type Config struct {
 	} `yaml:"api"`
 
 	Wisepaas struct {
-		Host         string `yaml:"host"`
-		Port         int    `yaml:"port"`
-		Websocket    int    `yaml:"websocket"`
-		MqttUser     string `yaml:"mqtt_user"`
-		MqttPassword string `yaml:"mqtt_password"`
+		Host      string `yaml:"host"`
+		Port      int    `yaml:"port"`
+		Websocket int    `yaml:"websocket"`
 	} `yaml:"wisepaas"`
 
 	MongoDB struct {
